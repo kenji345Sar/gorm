@@ -60,6 +60,8 @@ func executeTransaction(db *gorm.DB) error {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			// レコードが見つからなかった場合の処理
 			newUser := User{UserID: checkUserID, TargetUserID: checkTargetUserID, Name: "New User", Timestamp: time.Now()}
+			// newUser := User{UserID: checkUserID, TargetUserID: checkTargetUserID, Name: strings.Repeat("a", 10000), Timestamp: time.Now()}
+
 			if err := tx.Create(&newUser).Error; err != nil {
 				return fmt.Errorf("failed to create user: %w", err)
 			}
@@ -69,10 +71,13 @@ func executeTransaction(db *gorm.DB) error {
 			return fmt.Errorf("database error: %w", result.Error)
 		}
 	} else {
+		fmt.Println("Existing user found. Deleted user:", matchedUser)
 		// エラーが発生しなかった場合（レコードが正常に見つかった場合）
 		if err := tx.Delete(&matchedUser).Error; err != nil {
 			return fmt.Errorf("failed to delete user: %w", err)
 		}
+		// トランザクションのテスト用にエラーを返す
+		// return errors.New("manual trigger error for rollback test")
 		fmt.Println("Existing user found. Deleted user:", matchedUser)
 	}
 
